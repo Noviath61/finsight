@@ -1,0 +1,11 @@
+/* src/StockChart.css */
+.chart-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.stock-chart-box {
+  width: 100%;
+  max-width: 800px;
+}

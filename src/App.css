@@ -1,0 +1,162 @@
+body {
+  margin: 0;
+  background-color: #564356			;
+  font-family: system-ui, sans-serif;
+  color: white;
+}
+
+#root {
+  width: 100%;
+  padding: 2rem;
+}
+
+/* ⬆️ Market status top right */
+.market-status {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.open {
+  background-color: green;
+}
+
+.status-dot.closed {
+  background-color: red;
+}
+
+/* ⬆️ App title center top */
+/* App.css */
+.app-title {
+  font-family: 'Simplifica', sans-serif;
+  font-size: 6rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%) scaleX(1.15);
+  z-index: 1;
+  letter-spacing: 4px;
+}
+
+
+.search-wrapper-box {
+  background-color: white;
+  border-radius: 16px;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: block;
+  text-align: left;
+  max-width: 250px;   /* or 700px */
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  margin: 100px auto 0 auto; /* center */
+}
+
+.search-input-box {
+  width: 100%;
+  padding-left: 14px;  /* only left padding */
+  padding-right: 14px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+  font-size: 16px;
+  border: none;
+  border-radius: 16px 16px 0 0;
+  outline: none;
+  background-color: white;
+  color: black;
+  text-align: left;
+  box-sizing: border-box;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* ✅ Make placeholder align left as well */
+.search-input-box::placeholder {
+  text-align: left;
+  color: gray;
+}
+
+/* 🔽 Dropdown */
+.dropdown-list-box {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.dropdown-item-box {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: black;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+  border-top: 1px solid #eee;
+  box-sizing: border-box;
+}
+
+.dropdown-item-box:hover {
+  background-color: #f4f4f4;
+}
+
+.symbol-bold {
+  font-weight: 600;
+}
+
+/* ℹ️ Label under search */
+.loaded-info {
+  margin-top: 12px;
+  font-size: 15px;
+  color: #aaaaaa;
+  text-align: center;
+  font-style: italic;
+}
+
+/* 💰 Price block */
+.price-card {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.price-card h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.price-card p {
+  font-size: 16px;
+  margin: 4px 0;
+}
+
+/* Error styling */
+.error-msg {
+  color: #ff8c00;
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Centering container */
+.container {
+  padding: 40px 20px;
+  max-width: none;
+  margin: auto;
+}

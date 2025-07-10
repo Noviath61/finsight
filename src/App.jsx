@@ -180,10 +180,15 @@ function App() {
 
             <StockChart symbol={confirmedSymbol} interval={interval} />
           </div>
+          
         )}
 
         {error && <p className="error-msg">{error}</p>}
       </div>
+      <footer className="disclaimer-footer">
+       Information provided is for educational purposes only and
+        is notinvestment advice.
+      </footer>
     </>
   );
 }

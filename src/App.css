@@ -160,3 +160,10 @@ body {
   max-width: none;
   margin: auto;
 }
+
+.disclaimer-footer {
+  margin-top: 40px;
+  font-size: 14px;
+  text-align: center;
+  opacity: 0.8;
+}

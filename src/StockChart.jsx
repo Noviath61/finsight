@@ -1,5 +1,4 @@
-// src/StockChart.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -7,83 +6,109 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-} from "recharts";
+} from 'recharts';
 
-const intervalToOutputSize = {
-  "1d": 1,
-  "5d": 5,
-  "30d": 30,
-  "3m": 90,
-  "1y": 365,
-};
-
-const StockChart = ({ symbol, interval = "1d" }) => {
+function StockChart({ symbol, interval }) {
   const [data, setData] = useState([]);
+  const [ticks, setTicks] = useState([]);
+  const API_KEY = import.meta.env.VITE_FMP_API_KEY;
 
   useEffect(() => {
-    if (!symbol) return;
-
     const fetchChartData = async () => {
       try {
-        const outputsize = intervalToOutputSize[interval] || 30;
+        const url = `https://financialmodelingprep.com/api/v3/historical-chart/${interval}/${symbol}?apikey=${API_KEY}`;
+        const response = await fetch(url);
+        const rawData = await response.json();
 
-        const res = await fetch(
-          `https://api.twelvedata.com/time_series?symbol=${symbol}&interval=1day&outputsize=${outputsize}&apikey=${import.meta.env.VITE_TWELVE_API_KEY}`
-        );
-        const json = await res.json();
-
-        if (!json?.values) return;
-
-        const formatted = json.values
-          .map((item) => ({
-            label: new Date(item.datetime).toLocaleDateString("en-US", {
-              month: "numeric",
-              day: "numeric",
-            }),
-            close: parseFloat(item.close),
-          }))
-          .reverse();
-
-        setData(formatted);
-      } catch (err) {
-        console.error("Chart fetch error:", err);
+        if (Array.isArray(rawData)) {
+          const formatted = rawData.reverse().map(entry => ({
+            time: entry.date,
+            price: parseFloat(entry.close),
+          }));
+          setData(formatted);
+          setTicks(generateNiceTicks(formatted, interval));
+        } else {
+          setData([]);
+          setTicks([]);
+        }
+      } catch (error) {
+        console.error('Chart data fetch failed:', error);
         setData([]);
+        setTicks([]);
       }
     };
 
     fetchChartData();
-  }, [symbol, interval]);
+  }, [symbol, interval, API_KEY]);
 
-  if (data.length === 0) return null;
+  const generateNiceTicks = (formattedData, interval) => {
+    if (formattedData.length === 0) return [];
 
-  const color =
-    data[data.length - 1].close >= data[0].close ? "#00c176" : "#ff4d4f";
+    const isMinute = interval.includes('min');
+
+    if (isMinute) {
+      const result = [];
+      const step = {
+        '1min': 15,
+        '5min': 30,
+        '15min': 60,
+        '30min': 60,
+      }[interval] || 30;
+
+      for (const point of formattedData) {
+        const date = new Date(point.time);
+        const minutes = date.getMinutes();
+        if (minutes % step === 0) {
+          result.push(point.time);
+        }
+      }
+
+      return result;
+    }
+
+    // For hour/day intervals – just show ~6 ticks spaced out
+    const count = 6;
+    const total = formattedData.length;
+    const step = Math.floor(total / count);
+    const result = [];
+
+    for (let i = 0; i < total; i += step) {
+      result.push(formattedData[i].time);
+    }
+
+    return result;
+  };
+
+  const formatTime = (value) => {
+    const date = new Date(value);
+
+    if (interval.includes('min') || interval.includes('hour')) {
+      return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+    } else {
+      return `${date.getMonth() + 1}/${date.getDate()}`;
+    }
+  };
 
   return (
-    <div style={{ width: "100%", height: 300, marginTop: 40 }}>
+    <div style={{ width: '100%', height: 300 }}>
       <ResponsiveContainer>
         <LineChart data={data}>
           <XAxis
-            dataKey="label"
-            tick={{ fontSize: 10 }}
-            interval="preserveStartEnd"
+            dataKey="time"
+            tickFormatter={formatTime}
+            ticks={ticks}
+            minTickGap={20}
           />
-          <YAxis
-            domain={["auto", "auto"]}
-            tickFormatter={(v) => Math.round(v)}
+          <YAxis domain={['auto', 'auto']} />
+          <Tooltip
+            labelFormatter={(label) => `Time: ${formatTime(label)}`}
+            formatter={(value) => [`$${value.toFixed(2)}`, 'Price']}
           />
-          <Tooltip />
-          <Line
-            type="monotone"
-            dataKey="close"
-            stroke={color}
-            strokeWidth={2}
-            dot={false}
-          />
+          <Line type="monotone" dataKey="price" stroke="#8884d8" dot={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>
   );
-};
+}
 
 export default StockChart;

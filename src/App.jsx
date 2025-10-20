@@ -1,19 +1,31 @@
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import StockChart from './StockChart';
+import Fundamentals from './Fundamentals';
 
 function App() {
+  // Twelve Data key for price call
   const API_KEY = import.meta.env.VITE_TWELVE_API_KEY;
+
+  // UI / data state
   const [symbol, setSymbol] = useState('');
   const [price, setPrice] = useState(null);
   const [error, setError] = useState('');
   const inputRef = useRef(null);
+
+  // search list / dropdown
   const [results, setResults] = useState([]);
   const [stockList, setStockList] = useState([]);
+
+  // selected stock info
   const [selectedName, setSelectedName] = useState('');
   const [confirmedSymbol, setConfirmedSymbol] = useState('');
-  const [interval, setInterval] = useState('5d'); // default changed from 1day to 5d
 
+  // chart + view
+  const [interval, setInterval] = useState('1hour');
+  const [view, setView] = useState('chart'); // 'chart' | 'fundamentals'
+
+  // load list of stocks (FMP screener)
   useEffect(() => {
     const fetchStocks = async () => {
       try {
@@ -32,6 +44,7 @@ function App() {
     fetchStocks();
   }, []);
 
+  // filter dropdown by ticker prefix (A..Z up to 5 chars; US main exchanges)
   const filterTickers = (query) => {
     if (!query) {
       setResults([]);
@@ -52,6 +65,7 @@ function App() {
     setResults(matches.slice(0, 5));
   };
 
+  // fetch current price from Twelve Data and set selected company name
   const fetchStockData = async (inputSymbol) => {
     const finalSymbol = inputSymbol || symbol;
 
@@ -77,6 +91,10 @@ function App() {
         setSelectedName(company);
         setPrice(data.price);
         setError('');
+        // keep current view; if you want to auto-switch to chart you can uncomment:
+        // setView('chart');
+        // trigger chart rerender by touching interval (optional)
+        setInterval(prev => prev);
       } else {
         setConfirmedSymbol('');
         setSelectedName('');
@@ -92,6 +110,7 @@ function App() {
     }
   };
 
+  // market open/closed indicator (simple local time check)
   const now = new Date();
   const day = now.getDay();
   const hour = now.getHours();
@@ -162,32 +181,63 @@ function App() {
             <p>{selectedName}</p>
             <p>${parseFloat(price).toFixed(2)}</p>
 
-            <div style={{ marginTop: '10px', marginBottom: '15px' }}>
-              <label htmlFor="interval" style={{ marginRight: '10px' }}>Range:</label>
-              <select
-                id="interval"
-                value={interval}
-                onChange={(e) => setInterval(e.target.value)}
-                style={{ padding: '6px' }}
+            {/* view toggle */}
+            <div style={{ display: 'flex', gap: 8, margin: '10px 0 12px' }}>
+              <button
+                onClick={() => setView('chart')}
+                className={view === 'chart' ? 'btn-active' : 'btn'}
               >
-                <option value="1d">1 Day</option>
-                <option value="5d">5 Days</option>
-                <option value="30d">30 Days</option>
-                <option value="3m">3 Months</option>
-                <option value="1y">1 Year</option>
-              </select>
+                Chart
+              </button>
+              <button
+                onClick={() => setView('fundamentals')}
+                className={view === 'fundamentals' ? 'btn-active' : 'btn'}
+              >
+                Fundamentals
+              </button>
             </div>
 
-            <StockChart symbol={confirmedSymbol} interval={interval} />
+            {/* Range picker only for chart */}
+            {view === 'chart' && (
+              <div style={{ marginTop: '4px', marginBottom: '12px' }}>
+                <label htmlFor="interval" style={{ marginRight: '10px' }}>Range:</label>
+                <select
+                  id="interval"
+                  value={interval}
+                  onChange={(e) => setInterval(e.target.value)}
+                  style={{ padding: '6px' }}
+                >
+                  <option value="1min">1 Min</option>
+                  <option value="5min">5 Min</option>
+                  <option value="15min">15 Min</option>
+                  <option value="30min">30 Min</option>
+                  <option value="1hour">1 Hour</option>
+                  <option value="4hour">4 Hour</option>
+                  <option value="1day">1 Day</option>
+                </select>
+              </div>
+            )}
+
+            {/* content area */}
+            {view === 'chart' && confirmedSymbol && interval && (
+              <StockChart
+                key={`${confirmedSymbol}-${interval}`}
+                symbol={confirmedSymbol}
+                interval={interval}
+              />
+            )}
+            {view === 'fundamentals' && confirmedSymbol && (
+              <Fundamentals symbol={confirmedSymbol} />
+            )}
           </div>
-          
         )}
 
         {error && <p className="error-msg">{error}</p>}
       </div>
+
       <footer className="disclaimer-footer">
-       Information provided is for educational purposes only and
-        is notinvestment advice.
+        Information provided is for educational purposes only and
+        is not investment advice.
       </footer>
     </>
   );

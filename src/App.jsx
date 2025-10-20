@@ -12,6 +12,7 @@ function App() {
   const [price, setPrice] = useState(null);
   const [error, setError] = useState('');
   const inputRef = useRef(null);
+  const [quoteData, setQuoteData] = useState(null); // State for OHLCV data
 
   // search list / dropdown
   const [results, setResults] = useState([]);
@@ -65,9 +66,11 @@ function App() {
     setResults(matches.slice(0, 5));
   };
 
-  // fetch current price from Twelve Data and set selected company name
+  // fetch current price AND quote data
   const fetchStockData = async (inputSymbol) => {
     const finalSymbol = inputSymbol || symbol;
+
+    setQuoteData(null); // Reset quote data
 
     if (!finalSymbol) {
       setPrice(null);
@@ -80,32 +83,36 @@ function App() {
     const selected = stockList.find(s => s.symbol === finalSymbol);
     const company = selected ? selected.companyName : '';
 
-    const url = `https://api.twelvedata.com/price?symbol=${finalSymbol}&apikey=${API_KEY}`;
-
     try {
-      const response = await fetch(url);
-      const data = await response.json();
+      const [priceResponse, quoteResponse] = await Promise.all([
+        fetch(`https://api.twelvedata.com/price?symbol=${finalSymbol}&apikey=${API_KEY}`),
+        fetch(`https://financialmodelingprep.com/api/v3/quote/${finalSymbol}?apikey=${import.meta.env.VITE_FMP_API_KEY}`)
+      ]);
 
-      if (data.price) {
+      const priceData = await priceResponse.json();
+      const quoteJson = await quoteResponse.json();
+      const currentQuote = Array.isArray(quoteJson) && quoteJson.length > 0 ? quoteJson[0] : null;
+
+      if (priceData.price && currentQuote) {
         setConfirmedSymbol(finalSymbol);
         setSelectedName(company);
-        setPrice(data.price);
+        setPrice(priceData.price);
+        setQuoteData(currentQuote);
         setError('');
-        // keep current view; if you want to auto-switch to chart you can uncomment:
-        // setView('chart');
-        // trigger chart rerender by touching interval (optional)
         setInterval(prev => prev);
       } else {
         setConfirmedSymbol('');
         setSelectedName('');
         setPrice(null);
-        setError('Stock not found.');
+        setQuoteData(null);
+        setError(priceData.price ? 'Could not fetch quote data.' : 'Stock price not found.');
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching data:", error);
       setConfirmedSymbol('');
       setSelectedName('');
       setPrice(null);
+      setQuoteData(null);
       setError('Error fetching data');
     }
   };
@@ -125,114 +132,129 @@ function App() {
 
   return (
     <>
-      <div className="market-status">
-        <span className={`status-dot ${isMarketOpen ? 'open' : 'closed'}`}></span>
-        {isMarketOpen ? 'Market is open' : 'Market is closed'}
-      </div>
-
-      <div className="container">
-        <h1 className="app-title">Finsight</h1>
-
-        <div className="search-wrapper-box">
-          <input
-            ref={inputRef}
-            placeholder="Enter stock symbol (e.g. AAPL)"
-            value={symbol}
-            onChange={(e) => {
-              const value = e.target.value.toUpperCase();
-              setSymbol(value);
-              filterTickers(value);
-            }}
-            maxLength={5}
-            className="search-input-box"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                fetchStockData();
-              }
-            }}
-          />
-
-          {results.length > 0 && (
-            <ul className="dropdown-list-box">
-              {results.map((stock, idx) => (
-                <li
-                  key={idx}
-                  onClick={() => {
-                    setSymbol(stock.symbol);
-                    setResults([]);
-                    fetchStockData(stock.symbol);
-                  }}
-                  className="dropdown-item-box"
-                >
-                  <span className="symbol-bold">{stock.symbol}</span>
-                  <span>{stock.companyName}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+      <div className="app-wrapper">
+        <div className="market-status">
+          <span className={`status-dot ${isMarketOpen ? 'open' : 'closed'}`}></span>
+          {isMarketOpen ? 'Market is open' : 'Market is closed'}
         </div>
 
-        <p className="loaded-info"><em>Top 5000 stocks available</em></p>
+        <div className="container">
+          <h1 className="app-title">Finsight</h1>
 
-        {price && confirmedSymbol && (
-          <div className="price-card">
-            <h2>{confirmedSymbol}</h2>
-            <p>{selectedName}</p>
-            <p>${parseFloat(price).toFixed(2)}</p>
+          <div className="search-wrapper-box">
+            <input
+              ref={inputRef}
+              placeholder="Enter stock symbol (e.g. AAPL)"
+              value={symbol}
+              onChange={(e) => {
+                const value = e.target.value.toUpperCase();
+                setSymbol(value);
+                filterTickers(value);
+              }}
+              maxLength={5}
+              className="search-input-box"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  fetchStockData();
+                  setResults([]);
+                }
+              }}
+            />
 
-            {/* view toggle */}
-            <div style={{ display: 'flex', gap: 8, margin: '10px 0 12px' }}>
-              <button
-                onClick={() => setView('chart')}
-                className={view === 'chart' ? 'btn-active' : 'btn'}
-              >
-                Chart
-              </button>
-              <button
-                onClick={() => setView('fundamentals')}
-                className={view === 'fundamentals' ? 'btn-active' : 'btn'}
-              >
-                Fundamentals
-              </button>
-            </div>
-
-            {/* Range picker only for chart */}
-            {view === 'chart' && (
-              <div style={{ marginTop: '4px', marginBottom: '12px' }}>
-                <label htmlFor="interval" style={{ marginRight: '10px' }}>Range:</label>
-                <select
-                  id="interval"
-                  value={interval}
-                  onChange={(e) => setInterval(e.target.value)}
-                  style={{ padding: '6px' }}
-                >
-                  <option value="1min">1 Min</option>
-                  <option value="5min">5 Min</option>
-                  <option value="15min">15 Min</option>
-                  <option value="30min">30 Min</option>
-                  <option value="1hour">1 Hour</option>
-                  <option value="4hour">4 Hour</option>
-                  <option value="1day">1 Day</option>
-                </select>
-              </div>
-            )}
-
-            {/* content area */}
-            {view === 'chart' && confirmedSymbol && interval && (
-              <StockChart
-                key={`${confirmedSymbol}-${interval}`}
-                symbol={confirmedSymbol}
-                interval={interval}
-              />
-            )}
-            {view === 'fundamentals' && confirmedSymbol && (
-              <Fundamentals symbol={confirmedSymbol} />
+            {results.length > 0 && (
+              <ul className="dropdown-list-box">
+                {results.map((stock, idx) => (
+                  <li
+                    key={idx}
+                    onClick={() => {
+                      setSymbol(stock.symbol);
+                      setResults([]);
+                      fetchStockData(stock.symbol);
+                    }}
+                    className="dropdown-item-box"
+                  >
+                    <span className="symbol-bold">{stock.symbol}</span>
+                    <span>{stock.companyName}</span>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
-        )}
 
-        {error && <p className="error-msg">{error}</p>}
+          <p className="loaded-info"><em>Top 5000 stocks available</em></p>
+
+          {price && confirmedSymbol && (
+            <div className="price-card">
+              <h2>${confirmedSymbol}</h2>
+              <p>{selectedName}</p>
+              <p className="current-price">${parseFloat(price).toFixed(2)}</p>
+
+
+              <div className="view-toggle-buttons">
+                <button
+                  onClick={() => setView('chart')}
+                  className={view === 'chart' ? 'btn-active' : 'btn'}
+                >
+                  Chart
+                </button>
+                <button
+                  onClick={() => setView('fundamentals')}
+                  className={view === 'fundamentals' ? 'btn-active' : 'btn'}
+                >
+                  Fundamentals
+                </button>
+              </div>
+
+              {view === 'chart' && (
+                <div style={{ marginTop: '4px', marginBottom: '12px' }}>
+                  <label htmlFor="interval" style={{ marginRight: '10px' }}>Range:</label>
+                  <select
+                    id="interval"
+                    value={interval}
+                    onChange={(e) => setInterval(e.target.value)}
+                    className="range-select"
+                  >
+                    <option value="1min">1 Min</option>
+                    <option value="5min">5 Min</option>
+                    <option value="15min">15 Min</option>
+                    <option value="30min">30 Min</option>
+                    <option value="1hour">1 Hour</option>
+                    <option value="4hour">4 Hour</option>
+                    <option value="1day">1 Day</option>
+                  </select>
+                </div>
+              )}
+
+              {/* Conditional rendering for Chart/Fundamentals content */}
+              {view === 'chart' && confirmedSymbol && interval && (
+                <>
+                  <StockChart
+                    key={`${confirmedSymbol}-${interval}`}
+                    symbol={confirmedSymbol}
+                    interval={interval}
+                  />
+
+                  {quoteData && (
+                    <div className="ohlcv-data chart-ohlcv">
+                      <h4 className="ohlcv-title">Today</h4>
+                      <div className="data-row"><span className="label">Open</span> <span className="value">{quoteData.open?.toFixed(2) ?? 'N/A'}</span></div>
+                      <div className="data-row"><span className="label">High</span> <span className="value">{quoteData.dayHigh?.toFixed(2) ?? 'N/A'}</span></div>
+                      <div className="data-row"><span className="label">Low</span> <span className="value">{quoteData.dayLow?.toFixed(2) ?? 'N/A'}</span></div>
+                      <div className="data-row"><span className="label">Prev Close</span> <span className="value">{quoteData.previousClose?.toFixed(2) ?? 'N/A'}</span></div>
+                      <div className="data-row"><span className="label">Volume</span> <span className="value">{quoteData.volume?.toLocaleString() ?? 'N/A'}</span></div>
+                    </div>
+                  )}
+                </>
+              )}
+              {view === 'fundamentals' && confirmedSymbol && (
+                <Fundamentals symbol={confirmedSymbol} />
+              )}
+            </div>
+          )}
+
+          {error && <p className="error-msg">{error}</p>}
+        </div>
       </div>
 
       <footer className="disclaimer-footer">

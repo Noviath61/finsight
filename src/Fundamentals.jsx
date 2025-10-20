@@ -21,6 +21,7 @@ export default function Fundamentals({ symbol }) {
   const [profile, setProfile] = useState(null);
   const [metrics, setMetrics] = useState(null);
   const [err, setErr] = useState("");
+  const [isExpanded, setIsExpanded] = useState(false);
 
   useEffect(() => {
     if (!symbol) return;
@@ -83,8 +84,9 @@ export default function Fundamentals({ symbol }) {
       : null);
 
   return (
-    <div className="fundamentals-grid">
-      <section className="fundamentals-card">
+  <div className="fundamentals-container">
+    <div className="fundamentals-top-grid"> {/* New wrapper for the top two cards */}
+      <section className="fundamentals-card overview-card">
         <h3>Overview</h3>
         <div className="f-row"><span>Company</span><b>{profile?.companyName || symbol}</b></div>
         <div className="f-row"><span>Exchange</span><b>{profile?.exchangeShortName || profile?.exchange || "—"}</b></div>
@@ -93,28 +95,43 @@ export default function Fundamentals({ symbol }) {
         <div className="f-row">
           <span>Website</span>
           {profile?.website ? (
-            <a href={profile.website} target="_blank">{profile.website}</a>
+            <a href={profile.website} target="_blank" rel="noopener noreferrer">{profile.website.replace(/^https?:\/\//,'')}</a> // Cleaned up display
           ) : (
             <b>—</b>
           )}
         </div>
+        {/* Add more overview stats if available from profile, like volume? */}
+        {/* Example: <div className="f-row"><span>Volume</span><b>{profile?.volume?.toLocaleString() || '—'}</b></div> */}
       </section>
 
-      <section className="fundamentals-card">
+      <section className="fundamentals-card metrics-card">
         <h3>Key Metrics</h3>
         <div className="f-row"><span>Market Cap</span><b>{fmtMoney(marketCap, currency)}</b></div>
         <div className="f-row"><span>P/E (TTM)</span><b>{pe != null ? Number(pe).toFixed(2) : "—"}</b></div>
         <div className="f-row"><span>EPS (TTM)</span><b>{eps != null ? Number(eps).toFixed(2) : "—"}</b></div>
         <div className="f-row"><span>Dividend Yield</span><b>{dividendYield != null ? `${Number(dividendYield).toFixed(2)}%` : "—"}</b></div>
         <div className="f-row"><span>Beta</span><b>{beta != null ? Number(beta).toFixed(2) : "—"}</b></div>
+         {/* Add more key stats if available like 52 Week Range */}
+         {/* Example: <div className="f-row"><span>52 Wk Range</span><b>{profile?.range || '—'}</b></div> */}
       </section>
-
-      {profile?.description && (
-        <section className="fundamentals-card f-desc">
-          <h3>Description</h3>
-          <p>{profile.description}</p>
-        </section>
-      )}
     </div>
-  );
+
+    {profile?.description && (
+    <section className="fundamentals-card description-card">
+      <h3>About {profile?.companyName || symbol}</h3> {/* Use company name in heading */}
+      <p>
+        {isExpanded 
+          ? profile.description 
+          : `${profile.description.split('. ').slice(0, 3).join('. ')}.`}
+      </p>
+     <button 
+            onClick={() => setIsExpanded(!isExpanded)} 
+            className={`show-more-btn ${isExpanded ? 'btn-active' : ''}`} 
+          >
+            {isExpanded ? 'Show less' : 'Show more'}
+          </button>
+    </section>
+  )}
+  </div>
+);
 }

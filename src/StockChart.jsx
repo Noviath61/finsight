@@ -83,10 +83,18 @@ function StockChart({ symbol, interval }) {
     const date = new Date(value);
 
     if (interval.includes('min') || interval.includes('hour')) {
-      return `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+      return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+        });
     } else {
-      return `${date.getMonth() + 1}/${date.getDate()}`;
-    }
+      return date.toLocaleDateString("en-US", {
+        month: 'numeric',
+        day: 'numeric',
+        year: '2-digit'
+    });
+  }
   };
 
   return (
@@ -101,8 +109,16 @@ function StockChart({ symbol, interval }) {
           />
           <YAxis domain={['auto', 'auto']} />
           <Tooltip
-            labelFormatter={(label) => `Time: ${formatTime(label)}`}
+            labelFormatter={(label) => formatTime(label)}
             formatter={(value) => [`$${value.toFixed(2)}`, 'Price']}
+
+            contentStyle={{
+              backgroundColor: '#222',
+              border: 'none',
+              borderRadius: '6px'
+            }}
+            labelStyle={{ color: '#aaa' }}
+            itemStyle={{ color: '#fff' }}
           />
           <Line type="monotone" dataKey="price" stroke="#8884d8" dot={false} />
         </LineChart>

@@ -156,41 +156,246 @@ body {
 
 /* Centering container */
 .container {
-  padding: 40px 20px;
+  /* Keep existing styles */
   max-width: none;
   margin: auto;
+  padding: 40px 20px 50px 20px; /* Added 50px bottom padding */
 }
-
+ 
 .disclaimer-footer {
-  margin-top: 40px;
-  font-size: 14px;
+  position: absolute; /* Position relative to the nearest positioned ancestor (app-wrapper) */
+  bottom: 10px;       /* Distance from the bottom edge */
+  left: 0;          /* Align to the left edge */
+  right: 0;         /* Align to the right edge (stretches it) */
+  
+  /* Keep your previous styling for text, opacity etc. */
+  padding: 5px 20px; /* Adjusted padding */
   text-align: center;
-  opacity: 0.8;
-}
-
-
-.fundamentals-grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  margin-top: 8px;
-}
-.fundamentals-card {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
-  padding: 14px 16px;
-}
-.fundamentals-card h3 {
-  margin: 0 0 8px;
+  opacity: 0.7;
   font-size: 1rem;
+  color: #ccc;
+  box-sizing: border-box; 
+  width: 100%; /* Ensure it spans width */
 }
+
+
+
+.view-toggle-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+/* These are just placeholder styles, you can make them look however you want! */
+.btn {
+  background-color: #4a4a4a;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-active {
+  background-color: #6a6cff; /* A different color for the active tab */
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.fundamentals-container {
+  margin-top: 20px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.fundamentals-top-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.fundamentals-card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 16px 20px;
+  color: #eee;
+}
+
+.fundamentals-card h3 {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 8px;
+}
+
 .f-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
-  padding: 6px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 8px 0;
+  font-size: 0.95rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
-.f-row:last-child { border-bottom: none; }
-.f-desc p { opacity: .9; line-height: 1.5; }
+
+.f-row span {
+  color: #bbb;
+}
+
+.f-row b, .f-row a {
+  color: #fff;
+  text-align: right;
+  font-weight: 500;
+}
+.f-row a {
+  color: #8c9eff;
+  text-decoration: none;
+}
+.f-row a:hover {
+  text-decoration: underline;
+}
+
+
+.f-row:last-child {
+  border-bottom: none;
+}
+
+.description-card {
+  font-size: 0.9rem;
+  color: #ccc;
+  line-height: 1.6;
+}
+
+.description-card p {
+  margin-top: 5px;
+}
+
+.show-more-btn {
+  /* Default styles (like .btn) */
+  background-color: #4a4a4a; 
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  font-size: 0.9em;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s; /* Add transition for smoothness */
+  
+  /* Centering */
+  display: block; 
+  margin-left: auto; 
+  margin-right: auto; 
+  margin-top: 10px; 
+  width: fit-content; 
+}
+
+.show-more-btn:hover {
+   background-color: #5a5a5a; 
+}
+
+/* Styles when the button IS active (expanded) */
+.show-more-btn.btn-active {
+  background-color: #6a6cff; /* Use the same active color as other tabs */
+}
+
+.show-more-btn.btn-active:hover {
+  background-color: #535bf2; /* Slightly darker hover for active state */
+}
+
+.current-price {
+  font-size: 1.8em; /* Make current price larger */
+  font-weight: 600;
+  margin-bottom: 15px; /* Add space below price */
+}
+
+.ohlcv-data {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two columns */
+  gap: 8px 20px; /* Row gap, Column gap */
+  max-width: 350px; /* Limit width */
+  margin: 0 auto 20px auto; /* Center and add space below */
+  text-align: left; /* Align text within columns */
+  font-size: 0.9em;
+}
+
+
+/* Add General OHLCV Styles */
+.ohlcv-data .data-row {
+  display: flex;
+  justify-content: space-between;
+}
+.ohlcv-data .label {
+  color: #bbb;
+}
+.ohlcv-data .value {
+  color: #fff;
+  font-weight: 500;
+}
+
+/* Add Specific Style for OHLCV below Chart */
+.chart-ohlcv {
+   margin-top: 25px; 
+   display: grid;
+   grid-template-columns: 1fr 1fr; 
+   gap: 8px 20px; 
+   max-width: 350px; 
+   margin-left: auto; 
+   margin-right: auto; 
+   margin-bottom: 20px; 
+   text-align: left; 
+   font-size: 0.9em;
+}
+
+.ohlcv-title {
+  grid-column: 1 / -1; /* Make title span both columns */
+  text-align: center; /* Center the title */
+  margin-bottom: 10px; /* Space below title */
+  font-size: 1em; /* Adjust size as needed */
+  font-weight: 600;
+  color: #ddd; /* Slightly lighter than labels */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Optional separator */
+  padding-bottom: 5px; /* Space above separator */
+}
+
+/* Style for the Range dropdown label */
+label[for="interval"] {
+  color: #bbb; /* Match label color in OHLCV */
+  font-size: 0.9em;
+}
+
+/* Style for the select dropdown itself */
+.range-select {
+  background-color: #4a4a4a; 
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1); 
+  padding: 6px 10px; 
+  padding-right: 30px; /* Ensure space for arrow */
+  padding-left: 10px; /* Explicitly set left padding */
+  border-radius: 6px; 
+  font-size: 0.9em; 
+  margin-left: 5px; 
+  cursor: pointer;
+  appearance: none; 
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23CCCCCC%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right 10px top 50%;
+  background-size: .65em auto;
+}
+
+/* Optional: Style on focus */
+.range-select:focus {
+  outline: none;
+  border-color: #6a6cff; /* Match active button color */
+  box-shadow: 0 0 0 2px rgba(106, 108, 255, 0.5); /* Subtle glow */
+}

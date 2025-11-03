@@ -419,7 +419,7 @@ label[for="interval"] {
 
 .auth-toggle-button {
   background-color: transparent; 
-  color: #ccc;
+  color: #eee;
   border: none;
   padding: 6px 0px; 
   border-radius: 6px;
@@ -434,13 +434,6 @@ label[for="interval"] {
   text-decoration: underline;
 }
 
-.auth-toggle-button.signup {
-  font-weight: 600;
-  color: #eee;
-}
-.auth-toggle-button.signup:hover {
-  color: white;
-}
 
 .logout-button {
   background-color: #f64d4d; 
@@ -458,9 +451,28 @@ label[for="interval"] {
   background-color: #d93a3a; 
 }
 
-/* This overrides the old .market-status absolute positioning */
 .market-status {
   position: static; 
 }
 
-/* --- END OF NEW STYLES --- */
+.home-button-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+}
+
+.home-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem; /* Makes emoji/text larger */
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.home-button:hover {
+  opacity: 1;
+}

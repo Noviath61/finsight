@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Parse from 'parse';
 import './AuthForm.css';
 
-function Signup({ onSignupSuccess, switchToLogin }) {
+function Signup({ onSignupSuccess, switchToLogin, onCancel }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');

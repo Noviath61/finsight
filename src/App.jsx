@@ -152,6 +152,12 @@ function App() {
 
   return (
     <>
+    <div className="home-button-container">
+        <button onClick={() => setAuthView('none')} className="home-button">
+          🏠 Home
+        </button>
+      </div>
+
       <div className="app-wrapper">
         
         <div className="header-controls">

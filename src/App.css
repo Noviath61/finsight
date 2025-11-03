@@ -399,3 +399,68 @@ label[for="interval"] {
   border-color: #6a6cff; /* Match active button color */
   box-shadow: 0 0 0 2px rgba(106, 108, 255, 0.5); /* Subtle glow */
 }
+
+/* --- ADD THESE STYLES --- */
+
+.header-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center; 
+  gap: 20px;
+  z-index: 10;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.auth-toggle-button {
+  background-color: transparent; 
+  color: #ccc;
+  border: none;
+  padding: 6px 0px; 
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.auth-toggle-button:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+.auth-toggle-button.signup {
+  font-weight: 600;
+  color: #eee;
+}
+.auth-toggle-button.signup:hover {
+  color: white;
+}
+
+.logout-button {
+  background-color: #f64d4d; 
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.logout-button:hover {
+  background-color: #d93a3a; 
+}
+
+/* This overrides the old .market-status absolute positioning */
+.market-status {
+  position: static; 
+}
+
+/* --- END OF NEW STYLES --- */

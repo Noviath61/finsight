@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import StockChart from './StockChart';
 import Fundamentals from './Fundamentals';
+import Parse from 'parse';
+import Login from './Login';
+import Signup from './Signup'; 
 
 function App() {
   // Twelve Data key for price call
@@ -13,6 +16,10 @@ function App() {
   const [error, setError] = useState('');
   const inputRef = useRef(null);
   const [quoteData, setQuoteData] = useState(null); // State for OHLCV data
+
+  // Authentication state
+  const [currentUser, setCurrentUser] = useState(Parse.User.current());
+  const [authView, setAuthView] = useState('none'); // 'none', 'login', or 'signup'
 
   // search list / dropdown
   const [results, setResults] = useState([]);
@@ -69,9 +76,7 @@ function App() {
   // fetch current price AND quote data
   const fetchStockData = async (inputSymbol) => {
     const finalSymbol = inputSymbol || symbol;
-
-    setQuoteData(null); // Reset quote data
-
+    setQuoteData(null); 
     if (!finalSymbol) {
       setPrice(null);
       setSelectedName('');
@@ -130,131 +135,171 @@ function App() {
     }
   }
 
+  const handleAuthSuccess = () => {
+    setCurrentUser(Parse.User.current());
+    setAuthView('none'); // Hide forms on success
+  };
+
+  const handleLogout = async () => {
+    try {
+      await Parse.User.logOut();
+      setCurrentUser(null);
+      console.log('User logged out successfully');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
   return (
     <>
       <div className="app-wrapper">
-        <div className="market-status">
-          <span className={`status-dot ${isMarketOpen ? 'open' : 'closed'}`}></span>
-          {isMarketOpen ? 'Market is open' : 'Market is closed'}
-        </div>
-
-        <div className="container">
-          <h1 className="app-title">Finsight</h1>
-
-          <div className="search-wrapper-box">
-            <input
-              ref={inputRef}
-              placeholder="Enter stock symbol (e.g. AAPL)"
-              value={symbol}
-              onChange={(e) => {
-                const value = e.target.value.toUpperCase();
-                setSymbol(value);
-                filterTickers(value);
-              }}
-              maxLength={5}
-              className="search-input-box"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  fetchStockData();
-                  setResults([]);
-                }
-              }}
-            />
-
-            {results.length > 0 && (
-              <ul className="dropdown-list-box">
-                {results.map((stock, idx) => (
-                  <li
-                    key={idx}
-                    onClick={() => {
-                      setSymbol(stock.symbol);
-                      setResults([]);
-                      fetchStockData(stock.symbol);
-                    }}
-                    className="dropdown-item-box"
-                  >
-                    <span className="symbol-bold">{stock.symbol}</span>
-                    <span>{stock.companyName}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+        
+        <div className="header-controls">
+          <div className="market-status">
+            <span className={`status-dot ${isMarketOpen ? 'open' : 'closed'}`}></span>
+            {isMarketOpen ? 'Market is open' : 'Market is closed'}
           </div>
-
-          <p className="loaded-info"><em>Top 5000 stocks available</em></p>
-
-          {price && confirmedSymbol && (
-            <div className="price-card">
-              <h2>${confirmedSymbol}</h2>
-              <p>{selectedName}</p>
-              <p className="current-price">${parseFloat(price).toFixed(2)}</p>
-
-
-              <div className="view-toggle-buttons">
-                <button
-                  onClick={() => setView('chart')}
-                  className={view === 'chart' ? 'btn-active' : 'btn'}
-                >
-                  Chart
-                </button>
-                <button
-                  onClick={() => setView('fundamentals')}
-                  className={view === 'fundamentals' ? 'btn-active' : 'btn'}
-                >
-                  Fundamentals
-                </button>
-              </div>
-
-              {view === 'chart' && (
-                <div style={{ marginTop: '4px', marginBottom: '12px' }}>
-                  <label htmlFor="interval" style={{ marginRight: '10px' }}>Range:</label>
-                  <select
-                    id="interval"
-                    value={interval}
-                    onChange={(e) => setInterval(e.target.value)}
-                    className="range-select"
-                  >
-                    <option value="1min">1 Min</option>
-                    <option value="5min">5 Min</option>
-                    <option value="15min">15 Min</option>
-                    <option value="30min">30 Min</option>
-                    <option value="1hour">1 Hour</option>
-                    <option value="4hour">4 Hour</option>
-                    <option value="1day">1 Day</option>
-                  </select>
-                </div>
-              )}
-
-              {/* Conditional rendering for Chart/Fundamentals content */}
-              {view === 'chart' && confirmedSymbol && interval && (
-                <>
-                  <StockChart
-                    key={`${confirmedSymbol}-${interval}`}
-                    symbol={confirmedSymbol}
-                    interval={interval}
-                  />
-
-                  {quoteData && (
-                    <div className="ohlcv-data chart-ohlcv">
-                      <h4 className="ohlcv-title">Today</h4>
-                      <div className="data-row"><span className="label">Open</span> <span className="value">{quoteData.open?.toFixed(2) ?? 'N/A'}</span></div>
-                      <div className="data-row"><span className="label">High</span> <span className="value">{quoteData.dayHigh?.toFixed(2) ?? 'N/A'}</span></div>
-                      <div className="data-row"><span className="label">Low</span> <span className="value">{quoteData.dayLow?.toFixed(2) ?? 'N/A'}</span></div>
-                      <div className="data-row"><span className="label">Prev Close</span> <span className="value">{quoteData.previousClose?.toFixed(2) ?? 'N/A'}</span></div>
-                      <div className="data-row"><span className="label">Volume</span> <span className="value">{quoteData.volume?.toLocaleString() ?? 'N/A'}</span></div>
-                    </div>
-                  )}
-                </>
-              )}
-              {view === 'fundamentals' && confirmedSymbol && (
-                <Fundamentals symbol={confirmedSymbol} />
-              )}
+          
+          {/* Conditionally show Login/Signup or Logout button */}
+          {currentUser ? (
+            <button onClick={handleLogout} className="logout-button">Logout ({currentUser.getUsername()})</button>
+          ) : (
+            <div className="auth-buttons">
+              <button onClick={() => setAuthView('login')} className="auth-toggle-button">Login</button>
+              <button onClick={() => setAuthView('signup')} className="auth-toggle-button signup">Sign Up</button>
             </div>
           )}
-
-          {error && <p className="error-msg">{error}</p>}
         </div>
+
+        {authView === 'none' ? (
+          // If not logging in, show the main app content
+          <div className="container">
+            <h1 className="app-title">Finsight</h1>
+
+            <div className="search-wrapper-box">
+              <input
+                ref={inputRef}
+                placeholder="Enter stock symbol (e.g. AAPL)"
+                value={symbol}
+                onChange={(e) => {
+                  const value = e.target.value.toUpperCase();
+                  setSymbol(value);
+                  filterTickers(value);
+                }}
+                maxLength={5}
+                className="search-input-box"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    fetchStockData();
+                    setResults([]);
+                  }
+                }}
+              />
+              {results.length > 0 && (
+                <ul className="dropdown-list-box">
+                  {results.map((stock, idx) => (
+                    <li
+                      key={idx}
+                      onClick={() => {
+                        setSymbol(stock.symbol);
+                        setResults([]);
+                        fetchStockData(stock.symbol);
+                      }}
+                      className="dropdown-item-box"
+                    >
+                      <span className="symbol-bold">{stock.symbol}</span>
+                      <span>{stock.companyName}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <p className="loaded-info"><em>Top 5000 stocks available</em></p>
+
+            {price && confirmedSymbol && (
+              <div className="price-card">
+                <h2>${confirmedSymbol}</h2>
+                <p>{selectedName}</p>
+                <p className="current-price">${parseFloat(price).toFixed(2)}</p>
+
+                <div className="view-toggle-buttons">
+                  <button
+                    onClick={() => setView('chart')}
+                    className={view === 'chart' ? 'btn-active' : 'btn'}
+                  >
+                    Chart
+                  </button>
+                  <button
+                    onClick={() => setView('fundamentals')}
+                    className={view === 'fundamentals' ? 'btn-active' : 'btn'}
+                  >
+                    Fundamentals
+                  </button>
+                </div>
+
+                {view === 'chart' && (
+                  <div style={{ marginTop: '4px', marginBottom: '12px' }}>
+                    <label htmlFor="interval" style={{ marginRight: '10px' }}>Range:</label>
+                    <select
+                      id="interval"
+                      value={interval}
+                      onChange={(e) => setInterval(e.target.value)}
+                      className="range-select"
+                    >
+                      <option value="1min">1 Min</option>
+                      <option value="5min">5 Min</option>
+                      <option value="15min">15 Min</option>
+                      <option value="30min">30 Min</option>
+                      <option value="1hour">1 Hour</option>
+                      <option value="4hour">4 Hour</option>
+                      <option value="1day">1 Day</option>
+                    </select>
+                  </div>
+                )}
+
+                {view === 'chart' && confirmedSymbol && interval && (
+                  <>
+                    <StockChart
+                      key={`${confirmedSymbol}-${interval}`}
+                      symbol={confirmedSymbol}
+                      interval={interval}
+                    />
+                    {quoteData && (
+                      <div className="ohlcv-data chart-ohlcv">
+                        <h4 className="ohlcv-title">Today</h4>
+                        <div className="data-row"><span className="label">Open</span> <span className="value">{quoteData.open?.toFixed(2) ?? 'N/A'}</span></div>
+                        <div className="data-row"><span className="label">High</span> <span className="value">{quoteData.dayHigh?.toFixed(2) ?? 'N/A'}</span></div>
+                        <div className="data-row"><span className="label">Low</span> <span className="value">{quoteData.dayLow?.toFixed(2) ?? 'N/S'}</span></div>
+                        <div className="data-row"><span className="label">Prev Close</span> <span className="value">{quoteData.previousClose?.toFixed(2) ?? 'N/A'}</span></div>
+                        <div className="data-row"><span className="label">Volume</span> <span className="value">{quoteData.volume?.toLocaleString() ?? 'N/A'}</span></div>
+                      </div>
+                    )}
+                  </>
+                )}
+                {view === 'fundamentals' && confirmedSymbol && (
+                  <Fundamentals symbol={confirmedSymbol} />
+                )}
+              </div>
+            )}
+
+            {error && <p className="error-msg">{error}</p>}
+          </div>
+        ) : (
+          // ELSE, show the correct auth form
+          authView === 'login' ? (
+            <Login
+              onLoginSuccess={handleAuthSuccess}
+              switchToSignup={() => setAuthView('signup')}
+            />
+          ) : (
+            <Signup
+              onSignupSuccess={handleAuthSuccess}
+              switchToLogin={() => setAuthView('login')}
+            />
+          )
+        )}
       </div>
 
       <footer className="disclaimer-footer">
